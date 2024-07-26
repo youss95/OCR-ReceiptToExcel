@@ -3,6 +3,10 @@ package com.ksy.ocr.dto;
 import com.ksy.ocr.core.ExcelColumn;
 import lombok.Getter;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 @Getter
 public class ReceiptExcel {
 
@@ -15,9 +19,18 @@ public class ReceiptExcel {
     @ExcelColumn(name = "금액")
     private String total;
 
-    public ReceiptExcel(String comp, String date, String total) {
+    public ReceiptExcel(String comp, String date, String total) throws ParseException {
         this.compNo = comp;
-        this.date = date;
-        this.total = total;
+        this.date = stringToDate(date);
+        this.total = extractPrice(total);
+    }
+
+    private String stringToDate(String excelDate) throws ParseException {
+        Date date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(excelDate);
+        return new SimpleDateFormat("yyyy-MM-dd").format(date);
+    }
+
+    private String extractPrice(String total) {
+        return total.substring(0, total.length() - 1);
     }
 }

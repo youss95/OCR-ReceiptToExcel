@@ -1,18 +1,33 @@
 package com.ksy.ocr.service;
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
+import com.ksy.ocr.core.ExcelUtils;
+import com.ksy.ocr.dto.ReceiptExcel;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 
 @Service
+@RequiredArgsConstructor
 public class VisionService {
 
-    public String getTextFromImg(List<byte[]> data) throws IOException {
+    private static final int ADD_COMP_INDEX = 2;
+    private static final int ADD_DATE_INDEX = 2;
+    private static final int ADD_TOTAL_INDEX = 1;
+
+    private final ExcelUtils excelUtils;
+
+
+    public String getTextFromImg(List<byte[]> data, HttpServletResponse resp) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         for(int i=0; i<data.size(); i++) {
 
@@ -35,6 +50,8 @@ public class VisionService {
 
                 for (AnnotateImageResponse res : response.getResponsesList()) {
                     List<EntityAnnotation> abc =  res.getTextAnnotationsList();
+
+
                     if (res.hasError()) {
                         System.out.printf("Error: %s\n", res.getError().getMessage());
                         return "Error detected";
@@ -45,6 +62,7 @@ public class VisionService {
 //                        System.out.format("Position : %s%n", annotation.getBoundingPoly());
 //                    }
                     stringBuilder.append(res.getFullTextAnnotation().getText());
+
                 }
 
             }
@@ -57,15 +75,16 @@ public class VisionService {
     }
 
 
-    public String getTextFromPdf(List<byte[]> data) throws IOException {
-        StringBuilder stringBuilder = new StringBuilder();
-        for(int i=0; i<data.size(); i++) {
+    public String getTextFromPdf(List<byte[]> data, HttpServletResponse resp) throws IOException, IllegalAccessException, ParseException {
 
+        List<ReceiptExcel> rcList = new ArrayList<>();
+
+        System.out.println(data.size());
+        for(int i=0; i<data.size(); i++) {
+            StringBuilder stringBuilder = new StringBuilder();
 
             ByteString contents = ByteString.copyFrom(data.get(i));
             InputConfig inputConfig = InputConfig.newBuilder().setMimeType("application/pdf").setContent(contents).build();
-
-
 
             Feature feature = Feature.newBuilder().setType(Feature.Type.TEXT_DETECTION).build();
 
@@ -91,23 +110,34 @@ public class VisionService {
                 // Make the synchronous batch request.
                 BatchAnnotateFilesResponse response = imageAnnotatorClient.batchAnnotateFiles(request);
 
-                for (AnnotateImageResponse res : response.getResponsesList().get(0).getResponsesList()) {
+                for (AnnotateImageResponse  res : response.getResponsesList().get(0).getResponsesList()) {
+
 
                     if (res.hasError()) {
                         System.out.printf("Error: %s\n", res.getError().getMessage());
                         return "Error detected";
                     }
-                    System.out.println(res.getFullTextAnnotation().getText());
+
                     stringBuilder.append(res.getFullTextAnnotation().getText());
                 }
 
             }
+            List<String> t1 = Arrays.stream(stringBuilder.toString().split("\n")).toList();
+            System.out.println(t1);
+            int a1 = t1.indexOf("거래일자");
+            int a2 = t1.indexOf("합계");
+            int a3 = t1.indexOf("사업자번호");
+
+            String compNo = t1.get(a3+ADD_COMP_INDEX);
+            String total = t1.get(a2+ADD_TOTAL_INDEX);
+            String date = t1.get(a1+ADD_DATE_INDEX);
+
+            rcList.add(new ReceiptExcel(compNo,date,total));
         }
-        List<String> t1 = Arrays.stream(stringBuilder.toString().split("\n")).toList();
-        System.out.println(t1);
-        Stream<String> a = t1.stream().filter(x->x.contains("사업자"));
-        System.out.println();
-        return stringBuilder.toString();
+
+        excelUtils.download(ReceiptExcel.class, rcList, "download", resp); //엑셀 다운로드
+        return "ok";
     }
+
 
 }
