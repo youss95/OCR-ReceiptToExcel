@@ -2,6 +2,7 @@ package com.ksy.ocr.service;
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
 import com.ksy.ocr.core.ExcelUtils;
+import com.ksy.ocr.core.FieldIndex;
 import com.ksy.ocr.dto.ReceiptExcel;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +20,6 @@ import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 public class VisionService {
-
-    private static final int ADD_COMP_INDEX = 2;
-    private static final int ADD_DATE_INDEX = 2;
-    private static final int ADD_TOTAL_INDEX = 1;
 
     private final ExcelUtils excelUtils;
 
@@ -79,7 +76,6 @@ public class VisionService {
 
         List<ReceiptExcel> rcList = new ArrayList<>();
 
-        System.out.println(data.size());
         for(int i=0; i<data.size(); i++) {
             StringBuilder stringBuilder = new StringBuilder();
 
@@ -122,15 +118,15 @@ public class VisionService {
                 }
 
             }
-            List<String> t1 = Arrays.stream(stringBuilder.toString().split("\n")).toList();
-            System.out.println(t1);
-            int a1 = t1.indexOf("거래일자");
-            int a2 = t1.indexOf("합계");
-            int a3 = t1.indexOf("사업자번호");
+            List<String> parsedResult = Arrays.stream(stringBuilder.toString().split("\n")).toList();
+            System.out.println("parsedResult: " + parsedResult);
+            int a1 = parsedResult.indexOf("거래일자");
+            int a2 = parsedResult.indexOf("합계");
+            int a3 = parsedResult.indexOf("사업자번호");
 
-            String compNo = t1.get(a3+ADD_COMP_INDEX);
-            String total = t1.get(a2+ADD_TOTAL_INDEX);
-            String date = t1.get(a1+ADD_DATE_INDEX);
+            String compNo = parsedResult.get(a3+ FieldIndex.COMP.getIndex());
+            String total = parsedResult.get(a2+FieldIndex.TOTAL.getIndex());
+            String date = parsedResult.get(a1+FieldIndex.DATE.getIndex());
 
             rcList.add(new ReceiptExcel(compNo,date,total));
         }

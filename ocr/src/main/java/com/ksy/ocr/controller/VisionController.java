@@ -6,12 +6,6 @@ import com.ksy.ocr.dto.ReceiptExcel;
 import com.ksy.ocr.service.VisionService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -50,22 +44,6 @@ public class VisionController {
 
     }
 
-    @GetMapping("/extract")
-    public String extract() throws ParseException {
-        /*
-        * TODO --
-        * 이미지인 경우 필요 요수 추출
-         */
 
-        return null;
 
-    }
-
-    @GetMapping("/excel")
-    public void download(HttpServletResponse response) throws IOException, IllegalAccessException {
-
-        //List<ReceiptExcel> result = new ArrayList<>();
-        //result.add(new ReceiptExcel("2","3","4"));
-        //excelUtils.download(ReceiptExcel.class, result, "download", response);
-    }
 }
