@@ -120,15 +120,17 @@ public class VisionService {
             }
             List<String> parsedResult = Arrays.stream(stringBuilder.toString().split("\n")).toList();
             System.out.println("parsedResult: " + parsedResult);
-            int a1 = parsedResult.indexOf("거래일자");
-            int a2 = parsedResult.indexOf("합계");
-            int a3 = parsedResult.indexOf("사업자번호");
+            int dateIndex = parsedResult.indexOf(FieldIndex.DATE.getName());
+            int totalIndex = parsedResult.indexOf(FieldIndex.TOTAL.getName());
+            int compIndex = parsedResult.indexOf(FieldIndex.COMP.getName());
+            int storeIndex = parsedResult.indexOf(FieldIndex.STORE.getName());
 
-            String compNo = parsedResult.get(a3+ FieldIndex.COMP.getIndex());
-            String total = parsedResult.get(a2+FieldIndex.TOTAL.getIndex());
-            String date = parsedResult.get(a1+FieldIndex.DATE.getIndex());
+            String compNo = parsedResult.get(compIndex+ FieldIndex.COMP.getIndex());
+            String total = parsedResult.get(totalIndex+FieldIndex.TOTAL.getIndex());
+            String date = parsedResult.get(dateIndex+FieldIndex.DATE.getIndex());
+            String store = parsedResult.get(storeIndex+FieldIndex.STORE.getIndex());
 
-            rcList.add(new ReceiptExcel(compNo,date,total));
+            rcList.add(new ReceiptExcel(compNo,date,total,store));
         }
 
         excelUtils.download(ReceiptExcel.class, rcList, "download", resp); //엑셀 다운로드

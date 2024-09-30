@@ -19,10 +19,14 @@ public class ReceiptExcel {
     @ExcelColumn(name = "금액")
     private String total;
 
-    public ReceiptExcel(String comp, String date, String total) throws ParseException {
+    @ExcelColumn(name = "가맹점명")
+    private String store;
+
+    public ReceiptExcel(String comp, String date, String total, String store) throws ParseException {
         this.compNo = comp;
         this.date = stringToDate(date);
         this.total = extractPrice(total);
+        this.store = store;
     }
 
     private String stringToDate(String excelDate) throws ParseException {
